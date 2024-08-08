@@ -1,0 +1,17 @@
+{
+    "name": "Chat with Congress Development Container",
+    "dockerFile": "../Dockerfile.dev",
+    "context": "..",
+    "appPort": [8000],
+    "workspaceFolder": "/app",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-azuretools.vscode-docker"
+    ],
+    "postCreateCommand": "pip install -r requirements.txt",
+    "runArgs": ["--network", "host"]
+}
