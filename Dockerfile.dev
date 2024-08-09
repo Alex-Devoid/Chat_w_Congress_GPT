@@ -8,9 +8,9 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 
 # Install the required dependencies
-RUN apt-get update && apt-get install -y curl git vim net-tools build-essential clean
+RUN apt-get update && apt-get install -y curl git vim net-tools build-essential 
 RUN pip install --no-cache-dir -r requirements.txt
-
+RUN apt-get update
 # Copy the rest of the application code to the working directory
 COPY . .
 
