@@ -9,7 +9,6 @@ COPY requirements.txt requirements.txt
 
 # Install the required dependencies
 RUN apt-get update && apt-get install -y curl git vim net-tools build-essential 
-RUN apt-get update && apt-get install -y curl git vim net-tools build-essential 
 RUN pip install --no-cache-dir -r requirements.txt
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 
