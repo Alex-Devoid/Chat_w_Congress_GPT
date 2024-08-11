@@ -294,3 +294,6 @@ def get_senate_communications(congress, communication_type, api_key, **kwargs):
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Error fetching Senate communications")
     return response.json()
+
+
+

@@ -3,7 +3,7 @@ from chat_with_congress.app.api.endpoints import members
 
 app = FastAPI(
     title="Chat with Congress",
-    description="This API allows users to chat with data pulled from the Congress.gov API.",
+    description="This API allows users to interact with data pulled from the Congress.gov API.",
     version="1.0.0",
     servers=[
         {
