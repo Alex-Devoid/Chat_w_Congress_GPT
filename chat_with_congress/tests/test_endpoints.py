@@ -57,4 +57,33 @@ def test_chat():
         assert response.status_code == 404
         assert response.json() == {"detail": "Error fetching data from Congress.gov API"}
 
+
+def test_get_bill_details():
+    with patch("chat_with_congress.app.api.endpoints.members.requests.get") as mock_get:
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {"title": "Bill title"}
+        response = client.get("/bill-details/", json={"congress": 117, "bill_type": "hr", "bill_number": 123})
+        assert response.status_code == 200
+        assert response.json() == {"title": "Bill title"}
+        assert calculate_tokens(response.json()) < 4096
+
+def test_get_bill_actions():
+    with patch("chat_with_congress.app.api.endpoints.members.requests.get") as mock_get:
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {"actions": [{"actionCode": "A001", "text": "Action text"}]}
+        response = client.get("/bill-actions/", json={"congress": 117, "bill_type": "hr", "bill_number": 123})
+        assert response.status_code == 200
+        assert "actions" in response.json()
+        assert calculate_tokens(response.json()) < 4096
+
+def test_get_bill_amendments():
+    with patch("chat_with_congress.app.api.endpoints.members.requests.get") as mock_get:
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {"amendments": [{"congress": 117, "description": "Amendment description"}]}
+        response = client.get("/bill-amendments/", json={"congress": 117, "bill_type": "hr", "bill_number": 123})
+        assert response.status_code == 200
+        assert "amendments" in response.json()
+        assert calculate_tokens(response.json()) < 4096
+
+
 # Repeat similar tests for all other endpoints: transcripts, bill-details, etc.
