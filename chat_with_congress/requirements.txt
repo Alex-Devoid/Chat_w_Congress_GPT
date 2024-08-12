@@ -1,8 +1,7 @@
+numpy
 fastapi
 pydantic
 requests
 uvicorn
-numpy
 scikit-learn
 pytest
-EOF
