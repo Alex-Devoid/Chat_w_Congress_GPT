@@ -5,6 +5,7 @@ Unit tests for chunking service.
 from chat_with_congress.app.api.services.chunking import chunk_text
 import tiktoken  # Assuming the use of OpenAI's tiktoken library for token counting
 
+
 def calculate_tokens(text):
     encoding = tiktoken.get_encoding("gpt-3.5-turbo")
     return len(encoding.encode(text))
