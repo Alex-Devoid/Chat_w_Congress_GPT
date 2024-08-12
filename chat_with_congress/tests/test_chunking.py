@@ -9,6 +9,7 @@ def calculate_tokens(text):
     encoding = tiktoken.get_encoding("gpt-3.5-turbo")
     return len(encoding.encode(text))
 
+
 def test_chunking():
     text = "This is a sample text that should be chunked into smaller pieces."
     chunks = chunk_text(text, max_chunk_size=20)
