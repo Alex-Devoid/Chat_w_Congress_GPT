@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy only the requirements file to leverage Docker cache
 COPY chat_with_congress/requirements.txt /app/requirements.txt
-
+COPY .env /app/.env
 # Install system dependencies and Python packages
 RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnupg curl git vim net-tools build-essential \
     && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
@@ -17,6 +17,9 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnu
 
 ENV PYTHONPATH=/app    
 # Copy the rest of the application code to the working directory
+# Copy the .env file to the container
+
+
 COPY . .
 
 # Expose the port that the app runs on

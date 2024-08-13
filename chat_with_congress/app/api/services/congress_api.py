@@ -25,9 +25,12 @@ def search_members(api_key=None, **kwargs):
     :return: A dictionary containing the list of members.
     """
     url = f"{BASE_URL}/member"
+    
     params = {"api_key": api_key}
     params.update(kwargs)
     response = requests.get(url, params=params)
+    # print(response.message)
+    print(response.__dict__)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Error fetching members")
     return response.json()

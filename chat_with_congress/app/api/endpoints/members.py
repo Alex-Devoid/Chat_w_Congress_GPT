@@ -15,35 +15,46 @@ from app.api.services.congress_api import (
 )
 from app.api.services.chunking import chunk_text
 from app.api.services.semantic_search import semantic_search
+from dotenv import load_dotenv
 import os
 
+load_dotenv() 
+
 router = APIRouter()
+
 API_KEY = os.getenv("CONGRESS_GOV_API_KEY")
 
 @router.post("/search-members/", response_model=MembersResponse, summary="Search for members of Congress")
-def search_members(request: MemberSearchRequest):
+def search_members_post(request: MemberSearchRequest):
     """
     Search for members of Congress by name.
     Returns a list of members matching the search criteria.
     """
     response = search_members(api_key=API_KEY, query=request.name)
-    return response.get('members', [])
+    return {"members": response.get('members', [])}
 
 
 @router.post("/member-details/", response_model=MemberDetailsResponse, summary="Get details of a member of Congress")
-def get_member_details(request: MemberDetailsRequest):
+def fetch_member_details(request: MemberDetailsRequest):
     """
     Get detailed information about a specific member of Congress by ID.
     Returns the member's details including name, bio, and roles.
     """
     member_search_response = search_members(api_key=API_KEY, query=request.member_id)
+    print("member_search_response")
+    print(member_search_response)
+    print(member_search_response.message)
     members = member_search_response.get('members', [])
     if not members:
         raise HTTPException(status_code=404, detail="Member not found")
 
     bioguide_id = members[0]['bioguideId']
     member_details_response = get_member_details(bioguide_id, API_KEY)
-    return member_details_response['member']
+    
+    # If the API response does not include a 'member' key, return the response directly
+    return member_details_response
+
+
 
 
 @router.post("/chat/", response_model=ChatResponse, summary="Chat about a member of Congress")
