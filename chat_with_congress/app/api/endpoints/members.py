@@ -2,12 +2,15 @@ from fastapi import APIRouter, HTTPException
 from app.api.models.requests import (
     MemberSearchRequest, MemberDetailsRequest, ChatRequest, MembersResponse, 
     MemberDetailsResponse, ChatResponse, BillRequest, BillActionResponse, 
-    BillAmendmentResponse
+    BillAmendmentResponse, CommitteeRequest, CommitteeResponse, 
+    CommunicationRequest, CommunicationResponse, SenateCommunicationResponse
 )
-
 from app.api.services.congress_api import (
     get_member_details, search_members, get_bill_details, get_bill_actions, 
-    get_bill_amendments
+    get_bill_amendments, get_committee_details, get_house_communications, 
+    get_senate_communications, get_bill_committees, get_bill_cosponsors, 
+    get_bill_related_bills, get_bill_summaries, get_bill_text_versions, 
+    get_bill_titles
 )
 from app.api.services.chunking import chunk_text
 from app.api.services.semantic_search import semantic_search
@@ -37,7 +40,6 @@ def get_member_details(request: MemberDetailsRequest):
     if not members:
         raise HTTPException(status_code=404, detail="Member not found")
 
-    # Assuming member_id is bioguideId
     bioguide_id = members[0]['bioguideId']
     member_details_response = get_member_details(bioguide_id, API_KEY)
     return member_details_response['member']
@@ -80,3 +82,66 @@ def bill_amendments(request: BillRequest):
     Returns the amendments associated with the bill.
     """
     return get_bill_amendments(request.congress, request.bill_type, request.bill_number, API_KEY)
+
+@router.get("/bill-committees/", response_model=CommitteeResponse, summary="Get committees related to a bill")
+def bill_committees(request: BillRequest):
+    """
+    Get the list of committees associated with a specific bill.
+    """
+    return get_bill_committees(request.congress, request.bill_type, request.bill_number, API_KEY)
+
+@router.get("/bill-cosponsors/", response_model=BillCosponsorResponse, summary="Get cosponsors of a bill")
+def bill_cosponsors(request: BillRequest):
+    """
+    Get the list of cosponsors of a specific bill.
+    """
+    return get_bill_cosponsors(request.congress, request.bill_type, request.bill_number, API_KEY)
+
+@router.get("/bill-related-bills/", response_model=BillRelatedResponse, summary="Get related bills")
+def bill_related_bills(request: BillRequest):
+    """
+    Get the list of bills related to a specific bill.
+    """
+    return get_bill_related_bills(request.congress, request.bill_type, request.bill_number, API_KEY)
+
+@router.get("/bill-summaries/", response_model=BillSummaryResponse, summary="Get bill summaries")
+def bill_summaries(request: BillRequest):
+    """
+    Get summaries of a specific bill.
+    """
+    return get_bill_summaries(request.congress, request.bill_type, request.bill_number, API_KEY)
+
+@router.get("/bill-text-versions/", response_model=BillTextResponse, summary="Get bill text versions")
+def bill_text_versions(request: BillRequest):
+    """
+    Get different text versions of a specific bill.
+    """
+    return get_bill_text_versions(request.congress, request.bill_type, request.bill_number, API_KEY)
+
+@router.get("/bill-titles/", response_model=BillTitleResponse, summary="Get bill titles")
+def bill_titles(request: BillRequest):
+    """
+    Get the list of titles for a specific bill.
+    """
+    return get_bill_titles(request.congress, request.bill_type, request.bill_number, API_KEY)
+
+@router.get("/committee-details/", response_model=CommitteeResponse, summary="Get details about a specific committee")
+def committee_details(request: CommitteeRequest):
+    """
+    Get detailed information about a specific committee.
+    """
+    return get_committee_details(request.congress, request.chamber, request.committeeCode, API_KEY)
+
+@router.get("/house-communications/", response_model=CommunicationResponse, summary="Get House communications")
+def house_communications(request: CommunicationRequest):
+    """
+    Get a list of House communications based on congress and type.
+    """
+    return get_house_communications(request.congress, request.communication_type, API_KEY)
+
+@router.get("/senate-communications/", response_model=SenateCommunicationResponse, summary="Get Senate communications")
+def senate_communications(request: CommunicationRequest):
+    """
+    Get a list of Senate communications based on congress and type.
+    """
+    return get_senate_communications(request.congress, request.communication_type, API_KEY)
