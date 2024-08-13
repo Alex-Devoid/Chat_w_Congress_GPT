@@ -60,6 +60,9 @@ class Committee(BaseModel):
 
 class BillCommitteeResponse(BaseModel):
     committees: List[Committee] = Field(..., description="A list of committees associated with the bill.")
+    
+class CommitteeResponse(BaseModel):
+    committees: List[Committee] = Field(..., description="A list of committees related to the specified parameters.")
 
 class Cosponsor(BaseModel):
     bioguideId: str = Field(..., description="The unique identifier of the cosponsor.")

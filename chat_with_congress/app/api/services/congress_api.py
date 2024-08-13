@@ -297,3 +297,14 @@ def get_senate_communications(congress, communication_type, api_key, **kwargs):
 
 
 
+def get_committee_details(congress, chamber, committee_code, api_key, **kwargs):
+    """
+    Fetch detailed information about a specific committee.
+    """
+    url = f"{BASE_URL}/committee/{congress}/{chamber}/{committee_code}"
+    params = {"api_key": api_key}
+    params.update(kwargs)
+    response = requests.get(url, params=params)
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Error fetching committee details")
+    return response.json()
