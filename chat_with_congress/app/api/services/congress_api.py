@@ -1,12 +1,12 @@
 import requests
 from fastapi import HTTPException
 
+
 BASE_URL = "https://api.congress.gov/v3"
 
-def get_member_details(member_id, api_key):
+def get_member_details(member_id, api_key=None):
     """
     Fetch detailed information about a specific member of Congress by ID.
-    
     :param member_id: The ID of the member.
     :param api_key: The API key for authentication.
     :return: A dictionary containing the member's details.
@@ -17,10 +17,9 @@ def get_member_details(member_id, api_key):
         raise HTTPException(status_code=response.status_code, detail="Error fetching member details")
     return response.json()
 
-def search_members(api_key, **kwargs):
+def search_members(api_key=None, **kwargs):
     """
     Search for members of Congress using optional query parameters.
-
     :param api_key: The API key for authentication.
     :param kwargs: Optional parameters like 'format', 'offset', 'limit', etc.
     :return: A dictionary containing the list of members.
@@ -32,6 +31,7 @@ def search_members(api_key, **kwargs):
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Error fetching members")
     return response.json()
+
 
 def get_bill_details(congress, bill_type, bill_number, api_key, **kwargs):
     """
