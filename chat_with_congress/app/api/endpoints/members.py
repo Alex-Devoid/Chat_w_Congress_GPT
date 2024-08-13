@@ -3,7 +3,8 @@ from app.api.models.requests import (
     MemberSearchRequest, MemberDetailsRequest, ChatRequest, MembersResponse, 
     MemberDetailsResponse, ChatResponse, BillRequest, BillActionResponse, 
     BillAmendmentResponse, CommitteeRequest, CommitteeResponse, 
-    CommunicationRequest, CommunicationResponse, SenateCommunicationResponse
+    CommunicationRequest, CommunicationResponse, SenateCommunicationResponse, BillRelatedResponse,
+    BillCosponsorResponse, BillSummaryResponse, BillTextResponse,BillTitleResponse
 )
 from app.api.services.congress_api import (
     get_member_details, search_members, get_bill_details, get_bill_actions, 
