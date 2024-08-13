@@ -3,7 +3,7 @@ Unit tests for all endpoints.
 """
 
 from fastapi.testclient import TestClient
-from chat_with_congress.app.api.main import app
+from app.api.main import app
 from unittest.mock import patch
 import tiktoken  # Assuming the use of OpenAI's tiktoken library for token counting
 

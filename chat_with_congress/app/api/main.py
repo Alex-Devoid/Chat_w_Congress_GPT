@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from chat_with_congress.app.api.endpoints import members
+from app.api.endpoints import members
 
 app = FastAPI(
     title="Chat with Congress",

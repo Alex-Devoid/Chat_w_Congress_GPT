@@ -2,7 +2,8 @@
 Unit tests for chunking service.
 """
 
-from chat_with_congress.app.api.services.chunking import chunk_text
+from app.api.services.chunking import chunk_text
+
 import tiktoken  # Assuming the use of OpenAI's tiktoken library for token counting
 
 

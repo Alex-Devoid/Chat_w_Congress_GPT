@@ -198,3 +198,24 @@ class CommunicationRequest(BaseModel):
     congress: int = Field(..., description="The congress number.")
     communication_type: str = Field(..., description="The type of communication. Value can be ec, ml, pm, or pt.")
     communication_number: int = Field(..., description="The communication’s assigned number.")
+
+class MemberDetailsResponse(BaseModel):
+    bioguideId: str = Field(..., description="The unique identifier assigned to a member of Congress.")
+    birthYear: Optional[str] = Field(None, description="The birth year of the member.")
+    depiction: Optional[Depiction] = Field(None, description="An object containing the member's image URL and attribution.")
+    directOrderName: Optional[str] = Field(None, description="The member's full name in direct order (First Last).")
+    firstName: Optional[str] = Field(None, description="The member's first name.")
+    honorificName: Optional[str] = Field(None, description="The honorific title used for the member (e.g., Mr., Mrs.).")
+    invertedOrderName: Optional[str] = Field(None, description="The member's full name in inverted order (Last, First).")
+    lastName: Optional[str] = Field(None, description="The member's last name.")
+    leadership: Optional[List[Dict[str, str]]] = Field(None, description="A list of leadership roles held by the member, including the Congress number and role type.")
+    partyHistory: Optional[List[Dict[str, str]]] = Field(None, description="A list of the member's party affiliations over time.")
+    sponsoredLegislation: Optional[Dict[str, str]] = Field(None, description="A dictionary containing information on legislation sponsored by the member, including count and URL.")
+    cosponsoredLegislation: Optional[Dict[str, str]] = Field(None, description="A dictionary containing information on legislation cosponsored by the member, including count and URL.")
+    state: Optional[str] = Field(None, description="The state that the member represents.")
+    terms: Optional[List[Term]] = Field(None, description="A list of terms served by the member in Congress.")
+    updateDate: Optional[str] = Field(None, description="The date when the member's information was last updated.")
+
+class ChatResponse(BaseModel):
+    response: str = Field(..., description="The response generated from the chat based on the member's information.")
+    score: float = Field(..., description="The relevance score of the response based on the semantic search.")

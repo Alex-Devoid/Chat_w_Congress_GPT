@@ -4,9 +4,9 @@
 
 
 files=(
-/app/chat_with_congress/app/api/models/requests.py
-/app/chat_with_congress/app/api/endpoints/members.py
-/app/chat_with_congress/app/api/main.py
+
+/Users/alexdevoid/Documents/Chat_w_Congress_GPT/chat_with_congress/tests/test_endpoints.py
+/Users/alexdevoid/Documents/Chat_w_Congress_GPT/chat_with_congress/tests/test_chunking.py
 
 )
 
