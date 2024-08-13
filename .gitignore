@@ -1,0 +1,40 @@
+
+# Ignore environment variables
+.env
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ignore compiled files
+*.so
+*.dll
+*.dylib
+
+# Ignore virtual environments
+venv/
+.env/
+.venv/
+
+# Ignore logs
+*.log
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.bak
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore other temporary files or directories
+tmp/
+temp/
+
+# Ignore test coverage files
+.coverage
+coverage.xml
+htmlcov/
+*.cover
