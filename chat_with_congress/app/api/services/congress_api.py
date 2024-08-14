@@ -30,7 +30,7 @@ def search_members(api_key=None, **kwargs):
     params.update(kwargs)
     response = requests.get(url, params=params)
     # print(response.message)
-    print(response.__dict__)
+    
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Error fetching members")
     return response.json()
@@ -72,6 +72,8 @@ def get_bill_actions(congress, bill_type, bill_number, api_key, **kwargs):
     response = requests.get(url, params=params)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Error fetching bill actions")
+    
+    # Ensure response has the expected structure
     return response.json()
 
 def get_bill_amendments(congress, bill_type, bill_number, api_key, **kwargs):
@@ -88,7 +90,10 @@ def get_bill_amendments(congress, bill_type, bill_number, api_key, **kwargs):
     url = f"{BASE_URL}/bill/{congress}/{bill_type}/{bill_number}/amendments"
     params = {"api_key": api_key}
     params.update(kwargs)
+    print('hi')
     response = requests.get(url, params=params)
+    print(" get_bill_amendments response: ")
+    print(response)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Error fetching bill amendments")
     return response.json()

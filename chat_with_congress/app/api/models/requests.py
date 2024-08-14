@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional, Union, Dict
 
 class Depiction(BaseModel):
     attribution: str = Field(..., description="The attribution for the member's image.")
@@ -13,38 +13,73 @@ class Term(BaseModel):
 class Member(BaseModel):
     bioguideId: str = Field(..., description="The unique identifier assigned to a member of Congress.")
     depiction: Depiction = Field(..., description="The member's depiction object.")
-    district: Optional[str] = Field(None, description="The district the member represents.")
+    district: Optional[Union[int, str]] = Field(None, description="The district the member represents.")  # Allow both int and str
     name: str = Field(..., description="The full name of the member.")
     partyName: str = Field(..., description="The political party the member belongs to.")
     state: str = Field(..., description="The state the member represents.")
-    terms: List[Term] = Field(..., description="A list of terms served by the member.")
+    terms: Union[List[Term], Dict[str, List[Term]]] = Field(..., description="A list of terms served by the member.")  # Handle list or dict
     updateDate: str = Field(..., description="The last update date for the member's information.")
     url: str = Field(..., description="The URL to the member's profile.")
+
+class MemberDetailsResponse(BaseModel):
+    bioguideId: str = Field(..., description="The unique identifier assigned to a member of Congress.")
+    birthYear: Optional[str] = Field(None, description="The birth year of the member.")
+    deathYear: Optional[str] = Field(None, description="The death year of the member.")
+    currentMember: Optional[bool] = Field(None, description="Indicates if the person is a current member of Congress.")
+    depiction: Optional[Depiction] = Field(None, description="An object containing the member's image URL and attribution.")
+    directOrderName: Optional[str] = Field(None, description="The member's full name in direct order (First Last).")
+    firstName: Optional[str] = Field(None, description="The member's first name.")
+    honorificName: Optional[str] = Field(None, description="The honorific title used for the member (e.g., Mr., Mrs.).")
+    invertedOrderName: Optional[str] = Field(None, description="The member's full name in inverted order (Last, First).")
+    lastName: Optional[str] = Field(None, description="The member's last name.")
+    leadership: Optional[List[Dict[str, str]]] = Field(None, description="A list of leadership roles held by the member, including the Congress number and role type.")
+    
+    # Update here: startYear should be an integer if that's what's being returned by the API
+    partyHistory: Optional[List[Dict[str, Union[str, int]]]] = Field(None, description="A list of the member's party affiliations over time.")
+    
+    sponsoredLegislation: Optional[Dict[str, Union[int, str]]] = Field(None, description="A dictionary containing information on legislation sponsored by the member, including count and URL.")
+    cosponsoredLegislation: Optional[Dict[str, Union[int, str]]] = Field(None, description="A dictionary containing information on legislation cosponsored by the member, including count and URL.")
+    state: Optional[str] = Field(None, description="The state that the member represents.")
+    district: Optional[int] = Field(None, description="The district number of the member.")
+    terms: Optional[List[Term]] = Field(None, description="A list of terms served by the member in Congress.")
+    officialWebsiteUrl: Optional[str] = Field(None, description="The official website URL of the member.")
+    updateDate: Optional[str] = Field(None, description="The date when the member's information was last updated.")
+
+
 
 class MembersResponse(BaseModel):
     members: List[Member] = Field(..., description="A list of members matching the search criteria.")
 
+class SourceSystem(BaseModel):
+    code: Optional[int] = Field(None, description="Source system code.")  # Optional with default None
+    name: str = Field(..., description="Source system name.")
+
 class Action(BaseModel):
-    actionCode: str = Field(..., description="The code representing the type of action.")
-    actionDate: str = Field(..., description="The date the action took place.")
-    sourceSystem: Dict[str, str] = Field(..., description="Information about the system that provided the action data.")
-    text: str = Field(..., description="A description of the action.")
-    type: str = Field(..., description="The type of action performed.")
+    actionCode: Optional[str] = Field(None, description="Code representing the type of action.")  # Optional with default None
+    actionDate: str = Field(..., description="Date the action took place.")
+    sourceSystem: SourceSystem = Field(..., description="Details about the source system.")
+    text: str = Field(..., description="Description of the action.")
+    type: str = Field(..., description="Type of action performed.")
 
 class BillActionResponse(BaseModel):
     actions: List[Action] = Field(..., description="A list of actions taken on the bill.")
 
-class Amendment(BaseModel):
+class LatestAction(BaseModel):
+    actionDate: str = Field(..., description="The date when the latest action occurred.")
+    actionTime: Optional[str] = Field(None, description="The time when the latest action occurred.")  # Optional, as it might not always be present
+    text: str = Field(..., description="The description of the latest action.")
+
+class Amendment1(BaseModel):
     congress: int = Field(..., description="The congress number in which the amendment was introduced.")
     description: str = Field(..., description="A description of the amendment.")
-    latestAction: Dict[str, str] = Field(..., description="The latest action taken on the amendment.")
+    latestAction: LatestAction = Field(..., description="The latest action taken on the amendment.")
     number: str = Field(..., description="The amendment number.")
     type: str = Field(..., description="The type of the amendment.")
     updateDate: str = Field(..., description="The date the amendment was last updated.")
     url: str = Field(..., description="The URL to the amendment details.")
 
 class BillAmendmentResponse(BaseModel):
-    amendments: List[Amendment] = Field(..., description="A list of amendments to the bill.")
+    amendments: List[Amendment1] = Field(..., description="A list of amendments to the bill.")
 
 class CommitteeActivity(BaseModel):
     date: str = Field(..., description="The date of the committee's activity.")
@@ -197,23 +232,114 @@ class CommunicationRequest(BaseModel):
     communication_type: str = Field(..., description="The type of communication. Value can be ec, ml, pm, or pt.")
     communication_number: int = Field(..., description="The communication’s assigned number.")
 
-class MemberDetailsResponse(BaseModel):
-    bioguideId: str = Field(..., description="The unique identifier assigned to a member of Congress.")
-    birthYear: Optional[str] = Field(None, description="The birth year of the member.")
-    depiction: Optional[Depiction] = Field(None, description="An object containing the member's image URL and attribution.")
-    directOrderName: Optional[str] = Field(None, description="The member's full name in direct order (First Last).")
-    firstName: Optional[str] = Field(None, description="The member's first name.")
-    honorificName: Optional[str] = Field(None, description="The honorific title used for the member (e.g., Mr., Mrs.).")
-    invertedOrderName: Optional[str] = Field(None, description="The member's full name in inverted order (Last, First).")
-    lastName: Optional[str] = Field(None, description="The member's last name.")
-    leadership: Optional[List[Dict[str, str]]] = Field(None, description="A list of leadership roles held by the member, including the Congress number and role type.")
-    partyHistory: Optional[List[Dict[str, str]]] = Field(None, description="A list of the member's party affiliations over time.")
-    sponsoredLegislation: Optional[Dict[str, str]] = Field(None, description="A dictionary containing information on legislation sponsored by the member, including count and URL.")
-    cosponsoredLegislation: Optional[Dict[str, str]] = Field(None, description="A dictionary containing information on legislation cosponsored by the member, including count and URL.")
-    state: Optional[str] = Field(None, description="The state that the member represents.")
-    terms: Optional[List[Term]] = Field(None, description="A list of terms served by the member in Congress.")
-    updateDate: Optional[str] = Field(None, description="The date when the member's information was last updated.")
 
 class ChatResponse(BaseModel):
     response: str = Field(..., description="The response generated from the chat based on the member's information.")
     score: float = Field(..., description="The relevance score of the response based on the semantic search.")
+
+
+
+# Models for nested structures
+
+class Action(BaseModel):
+    count: int = Field(..., description="Number of actions.")
+    url: str = Field(..., description="URL to retrieve actions.")
+
+class Amendment(BaseModel):
+    count: int = Field(..., description="Number of amendments.")
+    url: str = Field(..., description="URL to retrieve amendments.")
+
+class CboCostEstimate(BaseModel):
+    description: str = Field(..., description="Description of the CBO cost estimate.")
+    pubDate: str = Field(..., description="Publication date of the estimate.")
+    title: str = Field(..., description="Title of the estimate.")
+    url: str = Field(..., description="URL to the full estimate.")
+
+class CommitteeReport(BaseModel):
+    citation: str = Field(..., description="Citation for the committee report.")
+    url: str = Field(..., description="URL to retrieve the report.")
+
+class Committee(BaseModel):
+    count: int = Field(..., description="Number of committees.")
+    url: str = Field(..., description="URL to retrieve committees.")
+
+class Cosponsor(BaseModel):
+    count: int = Field(..., description="Number of cosponsors.")
+    countIncludingWithdrawnCosponsors: int = Field(..., description="Total number including withdrawn cosponsors.")
+    url: str = Field(..., description="URL to retrieve cosponsors.")
+
+class LatestAction(BaseModel):
+    actionDate: str = Field(..., description="Date of the latest action.")
+    text: str = Field(..., description="Text describing the latest action.")
+
+class Law(BaseModel):
+    number: str = Field(..., description="Law number.")
+    type: str = Field(..., description="Type of law (e.g., Public Law).")
+
+class PolicyArea(BaseModel):
+    name: str = Field(..., description="Name of the policy area.")
+
+class RelatedBill(BaseModel):
+    count: int = Field(..., description="Number of related bills.")
+    url: str = Field(..., description="URL to retrieve related bills.")
+
+class Sponsor(BaseModel):
+    bioguideId: str = Field(..., description="Biographical ID of the sponsor.")
+    district: Optional[int] = Field(None, description="District of the sponsor.")
+    firstName: str = Field(..., description="First name of the sponsor.")
+    fullName: str = Field(..., description="Full name of the sponsor.")
+    isByRequest: str = Field(..., description="Indicates if the sponsor was by request.")
+    lastName: str = Field(..., description="Last name of the sponsor.")
+    middleName: Optional[str] = Field(None, description="Middle name of the sponsor.")
+    party: str = Field(..., description="Party of the sponsor.")
+    state: str = Field(..., description="State of the sponsor.")
+    url: str = Field(..., description="URL to retrieve sponsor details.")
+
+class Subject(BaseModel):
+    count: int = Field(..., description="Number of subjects.")
+    url: str = Field(..., description="URL to retrieve subjects.")
+
+class Summary(BaseModel):
+    count: int = Field(..., description="Number of summaries.")
+    url: str = Field(..., description="URL to retrieve summaries.")
+
+class TextVersion(BaseModel):
+    count: int = Field(..., description="Number of text versions.")
+    url: str = Field(..., description="URL to retrieve text versions.")
+
+class Title(BaseModel):
+    count: int = Field(..., description="Number of titles.")
+    url: str = Field(..., description="URL to retrieve titles.")
+
+# Main Bill model
+
+class Bill(BaseModel):
+    actions: Action = Field(..., description="Bill actions details.")
+    amendments: Amendment = Field(..., description="Bill amendments details.")
+    cboCostEstimates: List[CboCostEstimate] = Field(..., description="CBO cost estimates for the bill.")
+    committeeReports: List[CommitteeReport] = Field(..., description="Committee reports for the bill.")
+    committees: Committee = Field(..., description="Committees related to the bill.")
+    congress: int = Field(..., description="Congress number.")
+    constitutionalAuthorityStatementText: str = Field(..., description="Constitutional authority statement text.")
+    cosponsors: Cosponsor = Field(..., description="Cosponsors details.")
+    introducedDate: str = Field(..., description="Date the bill was introduced.")
+    latestAction: LatestAction = Field(..., description="Latest action taken on the bill.")
+    laws: List[Law] = Field(..., description="Laws associated with the bill.")
+    number: str = Field(..., description="Bill number.")
+    originChamber: str = Field(..., description="Chamber where the bill originated.")
+    policyArea: PolicyArea = Field(..., description="Policy area of the bill.")
+    relatedBills: RelatedBill = Field(..., description="Related bills information.")
+    sponsors: List[Sponsor] = Field(..., description="Sponsors of the bill.")
+    subjects: Subject = Field(..., description="Subjects related to the bill.")
+    summaries: Summary = Field(..., description="Summaries of the bill.")
+    textVersions: TextVersion = Field(..., description="Text versions of the bill.")
+    title: str = Field(..., description="Title of the bill.")
+    titles: Title = Field(..., description="Bill titles details.")
+    type: str = Field(..., description="Type of the bill (e.g., HR, S).")
+    updateDate: str = Field(..., description="Date when the bill was last updated.")
+    updateDateIncludingText: str = Field(..., description="Date when the bill text was last updated.")
+
+# Response model
+
+class BillDetailResponse(BaseModel):
+    bill: Bill = Field(..., description="Detailed information about the bill.")
