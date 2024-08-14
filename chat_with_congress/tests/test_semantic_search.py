@@ -17,3 +17,4 @@ def test_semantic_search_no_match():
     relevant_chunk, score = semantic_search(query, chunks)
     assert relevant_chunk == "", "Semantic search should return empty string when no match"
     assert score == 0.0, "Semantic search should return 0.0 score when no match"
+

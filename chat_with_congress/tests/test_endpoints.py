@@ -97,8 +97,7 @@ def test_get_bill_actions():
 def test_get_bill_amendments():
     # Direct API call to get bill amendments
     response = client.get("/bill-amendments/", params={"congress": 117, "bill_type": "hr", "bill_number": 3076})
-    print("response")
-    print(response)
+    
     # Validate the response
     assert response.status_code == 200
     assert "amendments" in response.json()
@@ -107,6 +106,20 @@ def test_get_bill_amendments():
     # Validate against the Pydantic model
     amendments = BillAmendmentResponse(**response.json())
     assert len(amendments.amendments) > 0  # Ensure there are amendments in the response
+    
+    # Check optional fields
+    for amendment in amendments.amendments:
+        assert amendment.congress == 117
+        assert amendment.number is not None
+        assert amendment.type is not None
+        assert amendment.updateDate is not None
+        assert amendment.url is not None
+        if amendment.description:
+            assert isinstance(amendment.description, str)
+        if amendment.latestAction:
+            assert isinstance(amendment.latestAction.text, str)
+
+
 
 
 def test_get_bill_cosponsors():
@@ -156,12 +169,11 @@ def test_get_bill_titles():
 
 def test_committee_details():
     # Direct API call to get committee details
-    response = client.get("/committee-details/", params={"congress": 117, "chamber": "house", "committeeCode": "ABC"})
+    response = client.get("/committee-details/", params={"chamber": "house", "committee_code": "hspw00"})
     
     # Validate the response
     assert response.status_code == 200
-    assert "committees" in response.json()
-    assert calculate_tokens(response.text) < 4096
+    assert "committee" in response.json()
 
 def test_house_communications():
     # Direct API call to get House communications

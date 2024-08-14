@@ -65,14 +65,14 @@ class BillActionResponse(BaseModel):
     actions: List[Action] = Field(..., description="A list of actions taken on the bill.")
 
 class LatestAction(BaseModel):
-    actionDate: str = Field(..., description="The date when the latest action occurred.")
-    actionTime: Optional[str] = Field(None, description="The time when the latest action occurred.")  # Optional, as it might not always be present
-    text: str = Field(..., description="The description of the latest action.")
+    actionDate: Optional[str] = Field(None, description="The date when the latest action occurred.")  # Optional
+    actionTime: Optional[str] = Field(None, description="The time when the latest action occurred.")  # Optional
+    text: Optional[str] = Field(None, description="The description of the latest action.")  # Optional
 
 class Amendment1(BaseModel):
     congress: int = Field(..., description="The congress number in which the amendment was introduced.")
-    description: str = Field(..., description="A description of the amendment.")
-    latestAction: LatestAction = Field(..., description="The latest action taken on the amendment.")
+    description: Optional[str] = Field(None, description="A description of the amendment.")  # Optional
+    latestAction: Optional[LatestAction] = Field(None, description="The latest action taken on the amendment.")  # Optional
     number: str = Field(..., description="The amendment number.")
     type: str = Field(..., description="The type of the amendment.")
     updateDate: str = Field(..., description="The date the amendment was last updated.")
@@ -85,19 +85,43 @@ class CommitteeActivity(BaseModel):
     date: str = Field(..., description="The date of the committee's activity.")
     name: str = Field(..., description="The name of the committee activity.")
 
+
+
+class CommitteeHistory(BaseModel):
+    committeeTypeCode: str = Field(..., description="The type of the committee.")
+    establishingAuthority: Optional[str] = Field(None, description="The authority that established the committee.")
+    libraryOfCongressName: str = Field(..., description="The Library of Congress name for the committee.")
+    locLinkedDataId: Optional[str] = Field(None, description="The Linked Data ID from LOC.")
+    naraId: Optional[str] = Field(None, description="The National Archives and Records Administration ID.")
+    officialName: str = Field(..., description="The official name of the committee.")
+    startDate: str = Field(..., description="The start date of the committee.")
+    endDate: Optional[str] = Field(None, description="The end date of the committee.")
+    superintendentDocumentNumber: Optional[str] = Field(None, description="The superintendent document number.")
+    updateDate: str = Field(..., description="The date when the record was last updated.")
+
+class Subcommittee(BaseModel):
+    name: str = Field(..., description="The name of the subcommittee.")
+    systemCode: str = Field(..., description="The system code for the subcommittee.")
+    url: str = Field(..., description="The URL to the subcommittee details.")
+
 class Committee(BaseModel):
-    activities: List[CommitteeActivity] = Field(..., description="A list of activities performed by the committee.")
-    chamber: str = Field(..., description="The chamber the committee belongs to.")
-    name: str = Field(..., description="The name of the committee.")
     systemCode: str = Field(..., description="The system code for the committee.")
     type: str = Field(..., description="The type of committee (e.g., standing, select).")
-    url: str = Field(..., description="The URL to the committee details.")
+    updateDate: str = Field(..., description="The date when the committee was last updated.")
+    isCurrent: bool = Field(..., description="Indicates whether the committee is current.")
+    history: List[CommitteeHistory] = Field(..., description="The history of the committee.")
+    subcommittees: List[Subcommittee] = Field(..., description="A list of subcommittees under the committee.")
+    bills: Optional[dict] = Field(None, description="Information about bills handled by the committee.")
+    communications: Optional[dict] = Field(None, description="Information about communications handled by the committee.")
+    reports: Optional[dict] = Field(None, description="Information about reports handled by the committee.")
+
+class CommitteeResponse(BaseModel):
+    committee: Committee = Field(..., description="Details about the specific committee.")
+
+
 
 class BillCommitteeResponse(BaseModel):
     committees: List[Committee] = Field(..., description="A list of committees associated with the bill.")
-    
-class CommitteeResponse(BaseModel):
-    committees: List[Committee] = Field(..., description="A list of committees related to the specified parameters.")
 
 class Cosponsor(BaseModel):
     bioguideId: str = Field(..., description="The unique identifier of the cosponsor.")
@@ -189,19 +213,29 @@ class CommitteeMeeting(BaseModel):
 class CommitteeMeetingResponse(BaseModel):
     committeeMeetings: List[CommitteeMeeting] = Field(..., description="A list of committee meetings based on the specified parameters.")
 
+class CommunicationType(BaseModel):
+    code: str = Field(..., description="The code representing the type of communication.")
+    name: str = Field(..., description="The name of the communication type.")
+
 class Communication(BaseModel):
     chamber: str = Field(..., description="The chamber related to the communication.")
-    communicationType: Dict[str, str] = Field(..., description="The type of communication.")
-    congressNumber: int = Field(..., description="The congress number related to the communication.")
-    number: str = Field(..., description="The communication number.")
-    reportNature: str = Field(..., description="The nature of the communication report.")
-    submittingAgency: str = Field(..., description="The agency that submitted the communication.")
-    submittingOfficial: str = Field(..., description="The official who submitted the communication.")
+    communicationType: CommunicationType = Field(..., description="Details of the communication type.")
+    congress: int = Field(..., description="The congress number related to the communication.")
+    number: Union[str, int] = Field(..., description="The communication number.")  # Accepts both str and int
+    reportNature: Optional[str] = Field(None, description="The nature of the communication report.")
+    submittingAgency: Optional[str] = Field(None, description="The agency that submitted the communication.")
+    submittingOfficial: Optional[str] = Field(None, description="The official who submitted the communication.")
     updateDate: str = Field(..., description="The date the communication was last updated.")
     url: str = Field(..., description="The URL to the communication details.")
 
+class Pagination(BaseModel):
+    count: Union[str, int] = Field(..., description="The total number of items.")  # Accepts both str and int
+    next: Optional[str] = Field(None, description="The URL to the next page of results.")
+
 class CommunicationResponse(BaseModel):
     houseCommunications: List[Communication] = Field(..., description="A list of House communications based on the specified parameters.")
+    pagination: Optional[Pagination] = Field(None, description="Pagination details for the response.")
+    request: Optional[Dict[str, str]] = Field(None, description="Request details included in the response.")
 
 class SenateCommunicationResponse(BaseModel):
     senateCommunications: List[Communication] = Field(..., description="A list of Senate communications based on the specified parameters.")
