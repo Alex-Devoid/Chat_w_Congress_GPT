@@ -5,7 +5,7 @@ Unit tests for all endpoints.
 from fastapi.testclient import TestClient
 from app.api.main import app
 import tiktoken
-from app.api.models.requests import (BillAmendmentResponse)
+from app.api.models.requests import (BillAmendmentResponse, BillSubjectResponse, CommitteePrintResponse, CommitteeMeetingResponse)
 
 client = TestClient(app)
 
@@ -29,27 +29,22 @@ def test_search_members():
 def test_get_member_details():
     # First, search for a member to get the bioguideId
     search_response = client.post("/search-members/", json={"name": "John Doe"})
-    print(search_response)
     assert search_response.status_code == 200
     search_json = search_response.json()
 
     # Assuming the first member in the list is valid for testing
     bioguide_id = search_json["members"][0]["bioguideId"]
-    print(bioguide_id)
+
     # Get member details using the bioguideId
     response = client.post("/member-details/", json={"member_id": bioguide_id})
     
     # Validate the response
     assert response.status_code == 200
     response_json = response.json()
-    print("response_json")
-    print(response_json)
+
     # Check the nested "member" key in the response
     assert response_json["bioguideId"] == bioguide_id
     assert calculate_tokens(response.text) < 4096, "Response exceeded token limit"
-
-
-
 
 def test_chat():
     # Assuming 'A000360' is a valid member_id for testing
@@ -90,10 +85,6 @@ def test_get_bill_actions():
     assert "actionCode" in action or "sourceSystem" in action
 
 
-    
-    # Additional assertions can be added as necessary
-
-
 def test_get_bill_amendments():
     # Direct API call to get bill amendments
     response = client.get("/bill-amendments/", params={"congress": 117, "bill_type": "hr", "bill_number": 3076})
@@ -118,9 +109,6 @@ def test_get_bill_amendments():
             assert isinstance(amendment.description, str)
         if amendment.latestAction:
             assert isinstance(amendment.latestAction.text, str)
-
-
-
 
 def test_get_bill_cosponsors():
     # Direct API call to get bill cosponsors
@@ -167,6 +155,15 @@ def test_get_bill_titles():
     assert "titles" in response.json()
     assert calculate_tokens(response.text) < 4096
 
+def test_get_bill_committees():
+    # Direct API call to get bill committees
+    response = client.get("/bill-committees/", params={"congress": 117, "bill_type": "hr", "bill_number": 3076})
+    
+    # Validate the response
+    assert response.status_code == 200
+    assert "committees" in response.json()
+    assert calculate_tokens(response.text) < 4096
+
 def test_committee_details():
     # Direct API call to get committee details
     response = client.get("/committee-details/", params={"chamber": "house", "committee_code": "hspw00"})
@@ -174,6 +171,66 @@ def test_committee_details():
     # Validate the response
     assert response.status_code == 200
     assert "committee" in response.json()
+
+
+def test_get_bill_subjects():
+    # Direct API call to get bill subjects
+    response = client.get("/bill-subjects/", params={"congress": 117, "bill_type": "hr", "bill_number": 3076})
+    
+    # Validate the response
+    assert response.status_code == 200
+    assert "legislativeSubjects" in response.json()
+    assert calculate_tokens(response.text) < 4096
+    
+    # Validate against the Pydantic model
+    subjects = BillSubjectResponse(**response.json())
+    assert len(subjects.legislativeSubjects) > 0  # Ensure there are legislative subjects
+    
+    # Check policy area
+    assert subjects.policyArea is not None
+    assert subjects.policyArea.name is not None
+
+
+
+def test_committee_prints():
+    # Direct API call to get committee prints
+    response = client.get("/committee-prints/", params={"congress": 117, "chamber": "house"})
+    
+    # Validate the response
+    assert response.status_code == 200
+    assert "committeePrints" in response.json()
+    assert calculate_tokens(response.text) < 4096
+    
+    # Validate against the Pydantic model
+    prints = CommitteePrintResponse(**response.json())
+    assert len(prints.committeePrints) > 0  # Ensure there are committee prints
+    
+    # Check fields in each print
+    for print_item in prints.committeePrints:
+        assert print_item.chamber == "House"
+        assert print_item.congress == 117
+        assert print_item.jacketNumber is not None
+        assert print_item.url is not None
+
+def test_committee_meetings():
+    # Direct API call to get committee meetings
+    response = client.get("/committee-meetings/", params={"congress": 118, "chamber": "house"})
+    
+    # Validate the response
+    assert response.status_code == 200
+    assert "committeeMeetings" in response.json()
+    assert calculate_tokens(response.text) < 4096
+    
+    # Validate against the Pydantic model
+    meetings = CommitteeMeetingResponse(**response.json())
+    assert len(meetings.committeeMeetings) > 0  # Ensure there are committee meetings
+    
+    # Check fields in each meeting
+    for meeting in meetings.committeeMeetings:
+        assert meeting.chamber == "House"
+        assert meeting.congress == 118
+        assert meeting.eventId is not None
+        assert meeting.url is not None
 
 def test_house_communications():
     # Direct API call to get House communications
@@ -192,3 +249,4 @@ def test_senate_communications():
     assert response.status_code == 200
     assert "senateCommunications" in response.json()
     assert calculate_tokens(response.text) < 4096
+

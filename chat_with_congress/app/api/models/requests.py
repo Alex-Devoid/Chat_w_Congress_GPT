@@ -151,7 +151,7 @@ class RelatedBill(BaseModel):
 class BillRelatedResponse(BaseModel):
     relatedBills: List[RelatedBill] = Field(..., description="A list of bills related to the specified bill.")
 
-class Subject(BaseModel):
+class LegislativeSubject(BaseModel):
     name: str = Field(..., description="The name of the legislative subject.")
     updateDate: str = Field(..., description="The date the subject was last updated.")
 
@@ -159,7 +159,7 @@ class PolicyArea(BaseModel):
     name: str = Field(..., description="The name of the policy area.")
 
 class BillSubjectResponse(BaseModel):
-    subjects: Dict[str, List[Subject]] = Field(..., description="A dictionary of subjects related to the bill.")
+    legislativeSubjects: List[LegislativeSubject] = Field(..., description="A list of legislative subjects related to the bill.")
     policyArea: PolicyArea = Field(..., description="The policy area related to the bill.")
 
 class Summary(BaseModel):
@@ -377,3 +377,44 @@ class Bill(BaseModel):
 
 class BillDetailResponse(BaseModel):
     bill: Bill = Field(..., description="Detailed information about the bill.")
+
+
+
+class CommitteeActivityBill(BaseModel):
+    date: str = Field(..., description="The date of the committee's activity.")
+    name: str = Field(..., description="The name of the committee activity.")
+
+class SubcommitteeBill(BaseModel):
+    name: str = Field(..., description="The name of the subcommittee.")
+    systemCode: str = Field(..., description="The system code for the subcommittee.")
+    url: str = Field(..., description="The URL to the subcommittee details.")
+    activities: Optional[List[CommitteeActivityBill]] = Field(None, description="A list of activities performed by the subcommittee.")
+
+class CommitteeBill(BaseModel):
+    systemCode: str = Field(..., description="The system code for the committee.")
+    type: str = Field(..., description="The type of committee (e.g., standing, select).")
+    url: str = Field(..., description="The URL to the committee details.")
+    chamber: str = Field(..., description="The chamber the committee belongs to.")
+    name: str = Field(..., description="The name of the committee.")
+    activities: List[CommitteeActivityBill] = Field(..., description="A list of activities performed by the committee.")
+    subcommittees: Optional[List[SubcommitteeBill]] = Field(None, description="A list of subcommittees under the committee.")
+
+class Pagination(BaseModel):
+    count: int = Field(..., description="The total number of items.")
+    next: Optional[str] = Field(None, description="The URL to the next page of results, if applicable.")
+
+class CommitteeResponseBill(BaseModel):
+    committees: List[CommitteeBill] = Field(..., description="A list of committees related to the specified parameters.")
+    pagination: Optional[Pagination] = Field(None, description="Pagination details for the list of committees.")
+    request: Optional[dict] = Field(None, description="Details of the request that generated this response.")
+
+
+
+
+
+
+
+
+
+
+
