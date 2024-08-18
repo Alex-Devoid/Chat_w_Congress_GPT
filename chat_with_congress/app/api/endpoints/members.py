@@ -1,7 +1,8 @@
+from fastapi import APIRouter, HTTPException, Query, Depends, Security
 from fastapi.exceptions import RequestValidationError
-from fastapi import APIRouter, HTTPException, Query
-
+from fastapi.security.api_key import APIKeyHeader
 from fastapi.encoders import jsonable_encoder
+from starlette.status import HTTP_403_FORBIDDEN
 
 from app.api.models.requests import (
     MemberSearchRequest, MemberDetailsRequest, ChatRequest, MembersResponse, 
@@ -24,14 +25,24 @@ from app.api.services.semantic_search import semantic_search
 from dotenv import load_dotenv
 import os
 
-load_dotenv() 
+load_dotenv()
 
 router = APIRouter()
 
 API_KEY = os.getenv("CONGRESS_GOV_API_KEY")
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+def get_api_key(api_key_header: str = Security(api_key_header)):
+    if api_key_header == API_KEY:
+        return api_key_header
+    else:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="Could not validate credentials"
+        )
 
 @router.post("/search-members/", response_model=MembersResponse, summary="Search for members of Congress")
-def search_members_post(request: MemberSearchRequest):
+def search_members_post(request: MemberSearchRequest, api_key: str = Depends(get_api_key)):
     """
     Search for members of Congress by name.
     Returns a list of members matching the search criteria.
@@ -39,10 +50,8 @@ def search_members_post(request: MemberSearchRequest):
     response = search_members(api_key=API_KEY, query=request.name)
     return {"members": response.get('members', [])}
 
-
-
 @router.post("/member-details/", response_model=MemberDetailsResponse, summary="Get details of a member of Congress")
-def fetch_member_details(request: MemberDetailsRequest):
+def fetch_member_details(request: MemberDetailsRequest, api_key: str = Depends(get_api_key)):
     """
     Get detailed information about a specific member of Congress by ID.
     Returns the member's details including name, bio, and roles.
@@ -56,19 +65,13 @@ def fetch_member_details(request: MemberDetailsRequest):
     bioguide_id = members[0]['bioguideId']
     member_details_response = get_member_details(bioguide_id, API_KEY)
 
-    # Assuming the API response is structured like {'member': { ... }}
     member_data = member_details_response.get('member')
     if member_data is None:
         raise HTTPException(status_code=500, detail="Unexpected response format")
-    print(member_data)
     return member_data
 
-
-
-
-
 @router.post("/chat/", response_model=ChatResponse, summary="Chat about a member of Congress")
-def chat(request: ChatRequest):
+def chat(request: ChatRequest, api_key: str = Depends(get_api_key)):
     """
     Chat about a member of Congress using their ID.
     Responds to questions about the specified member.
@@ -80,11 +83,8 @@ def chat(request: ChatRequest):
     relevant_chunk, score = semantic_search(request.question, chunks)
     return {"response": relevant_chunk, "score": score}
 
-
-
-
 @router.get("/bill-details/", response_model=BillDetailResponse, summary="Get details of a specific bill")
-def bill_details(congress: int, bill_type: str, bill_number: int):
+def bill_details(congress: int, bill_type: str, bill_number: int, api_key: str = Depends(get_api_key)):
     """
     Get detailed information about a specific bill.
     Returns details of the bill including the text, amendments, and actions.
@@ -92,76 +92,65 @@ def bill_details(congress: int, bill_type: str, bill_number: int):
     details = get_bill_details(congress, bill_type, bill_number, API_KEY)
     return details
 
-
-
-
-
-
-
 @router.get("/bill-actions/", response_model=BillActionResponse, summary="Get actions related to a bill")
 def bill_actions(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hjres, etc.)."),
-    bill_number: int = Query(..., description="The bill's assigned number.")
+    bill_number: int = Query(..., description="The bill's assigned number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get the list of actions on a specified bill.
     Returns the actions taken on the bill.
     """
-    print(f"Received request: congress={congress}, bill_type={bill_type}, bill_number={bill_number}")
     response = get_bill_actions(congress, bill_type, bill_number, API_KEY)
-    print(f"API response: {response}")
     return response
-
-
-
 
 @router.get("/bill-amendments/", response_model=BillAmendmentResponse, summary="Get amendments related to a bill")
 def bill_amendments(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hres, sres)."),
-    bill_number: int = Query(..., description="The bill number.")
+    bill_number: int = Query(..., description="The bill number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get the list of amendments to a specified bill.
     Returns the amendments associated with the bill.
     """
-    print("Received request for bill amendments")
     amendments = get_bill_amendments(congress, bill_type, bill_number, API_KEY)
-    print("Amendments:", amendments)
     return amendments
-
 
 @router.get("/bill-cosponsors/", response_model=BillCosponsorResponse, summary="Get cosponsors of a bill")
 def bill_cosponsors(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hres, sres)."),
-    bill_number: int = Query(..., description="The bill number.")
+    bill_number: int = Query(..., description="The bill number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get the list of cosponsors of a specific bill.
     """
     return get_bill_cosponsors(congress, bill_type, bill_number, API_KEY)
 
-
 @router.get("/bill-committees/", response_model=CommitteeResponseBill, summary="Get committees related to a bill")
 def bill_committees(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hjres, etc.)."),
-    bill_number: int = Query(..., description="The bill's assigned number.")
+    bill_number: int = Query(..., description="The bill's assigned number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get the list of committees associated with a specific bill.
     """
     bill_committees_response = get_bill_committees(congress, bill_type, bill_number, API_KEY)
-    print(bill_committees_response )
     return bill_committees_response
 
 @router.get("/bill-related-bills/", response_model=BillRelatedResponse, summary="Get related bills")
 def bill_related_bills(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hjres, etc.)."),
-    bill_number: int = Query(..., description="The bill's assigned number.")
+    bill_number: int = Query(..., description="The bill's assigned number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get the list of bills related to a specific bill.
@@ -172,19 +161,20 @@ def bill_related_bills(
 def bill_summaries(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hjres, etc.)."),
-    bill_number: int = Query(..., description="The bill's assigned number.")
+    bill_number: int = Query(..., description="The bill's assigned number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get summaries of a specific bill.
     """
     return get_bill_summaries(congress, bill_type, bill_number, API_KEY)
 
-
 @router.get("/bill-text-versions/", response_model=BillTextResponse, summary="Get bill text versions")
 def bill_text_versions(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hjres, etc.)."),
-    bill_number: int = Query(..., description="The bill's assigned number.")
+    bill_number: int = Query(..., description="The bill's assigned number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get different text versions of a specific bill.
@@ -195,7 +185,8 @@ def bill_text_versions(
 def bill_titles(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hjres, etc.)."),
-    bill_number: int = Query(..., description="The bill's assigned number.")
+    bill_number: int = Query(..., description="The bill's assigned number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get the list of titles for a specific bill.
@@ -205,47 +196,44 @@ def bill_titles(
 @router.get("/committee-details/", response_model=CommitteeResponse, summary="Get details about a specific committee")
 def committee_details(
     chamber: str = Query(..., description="The chamber (house, senate, or nochamber)."),
-    committee_code: str = Query(..., description="The committee code.")
+    committee_code: str = Query(..., description="The committee code."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get detailed information about a specific committee.
     """
-    print(chamber)
-    print(committee_code)
-    comm_detailes = get_committee_details( chamber, committee_code, API_KEY)
-    print('comm_detailes')
-    print(comm_detailes)
-    return comm_detailes
+    comm_details = get_committee_details(chamber, committee_code, API_KEY)
+    return comm_details
 
 @router.get("/house-communications/", response_model=CommunicationResponse, summary="Get House communications")
 def house_communications(
     congress: int = Query(..., description="The congress number."),
-    communication_type: str = Query(..., description="The type of communication (ec, ml, pm, pt).")
+    communication_type: str = Query(..., description="The type of communication (ec, ml, pm, pt)."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get a list of House communications based on congress and type.
     """
     house_comms = get_house_communications(congress, communication_type, API_KEY)
-    print("house_comms")
-    print(house_comms)
     return house_comms
 
 @router.get("/senate-communications/", response_model=SenateCommunicationResponse, summary="Get Senate communications")
 def senate_communications(
     congress: int = Query(..., description="The congress number."),
-    communication_type: str = Query(..., description="The type of communication (ec, pm, pom).")
+    communication_type: str = Query(..., description="The type of communication (ec, pm, pom)."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get a list of Senate communications based on congress and type.
     """
     return get_senate_communications(congress, communication_type, API_KEY)
 
-
 @router.get("/bill-subjects/", response_model=BillSubjectResponse, summary="Get bill subjects")
 def bill_subjects(
     congress: int = Query(..., description="The congress number."),
     bill_type: str = Query(..., description="The bill type (e.g., hr, s, hjres, etc.)."),
-    bill_number: int = Query(..., description="The bill's assigned number.")
+    bill_number: int = Query(..., description="The bill's assigned number."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get the list of legislative subjects on a specified bill.
@@ -253,18 +241,16 @@ def bill_subjects(
     """
     response = get_bill_subjects(congress, bill_type, bill_number, API_KEY)
     subjects = response.get("subjects", {})
-    
     return {
         "legislativeSubjects": subjects.get("legislativeSubjects", []),
         "policyArea": subjects.get("policyArea", {})
     }
 
-
-
 @router.get("/committee-prints/", response_model=CommitteePrintResponse, summary="Get committee prints")
 def committee_prints(
     congress: int = Query(..., description="The congress number."),
-    chamber: str = Query(..., description="The chamber name (house, senate, or nochamber).")
+    chamber: str = Query(..., description="The chamber name (house, senate, or nochamber)."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get a list of committee prints filtered by the specified congress and chamber.
@@ -276,7 +262,8 @@ def committee_prints(
 @router.get("/committee-meetings/", response_model=CommitteeMeetingResponse, summary="Get committee meetings")
 def committee_meetings(
     congress: int = Query(..., description="The congress number."),
-    chamber: str = Query(..., description="The chamber name (house, senate, or nochamber).")
+    chamber: str = Query(..., description="The chamber name (house, senate, or nochamber)."),
+    api_key: str = Depends(get_api_key)
 ):
     """
     Get a list of committee meetings filtered by the specified congress and chamber.

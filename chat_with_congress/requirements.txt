@@ -7,4 +7,5 @@ uvicorn
 scikit-learn
 pytest
 tiktoken
+starlette
 python-dotenv
