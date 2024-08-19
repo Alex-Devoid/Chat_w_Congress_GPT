@@ -30,8 +30,8 @@ load_dotenv()
 router = APIRouter()
 
 API_KEY = os.getenv("CONGRESS_GOV_API_KEY")
-API_KEY_NAME = "X-API-Key"
-api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+SERVER_API_KEY = os.getenv("SERVER_API_KEY")
+api_key_header = APIKeyHeader(name=SERVER_API_KEY, auto_error=False)
 
 def get_api_key(api_key_header: str = Security(api_key_header)):
     if api_key_header == API_KEY:
