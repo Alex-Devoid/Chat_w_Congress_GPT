@@ -4,9 +4,8 @@
         "dockerfile": "../chat_with_congress/Dockerfile.dev",
         "context": ".."
     },
-  
     "appPort": [8000],
-    "workspaceFolder": "/app",
+    "workspaceFolder": "/app/chat_with_congress",
     "customizations": {
         "vscode": {
             "settings": {
