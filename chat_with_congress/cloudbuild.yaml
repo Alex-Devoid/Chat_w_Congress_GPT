@@ -1,0 +1,5 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-f', 'chat_with_congress/Dockerfile.prod', '-t', 'us-central1-docker.pkg.dev/chat-with-congress/chat-w-congress-repo/custom-fastapi:latest', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/chat-with-congress/chat-w-congress-repo/custom-fastapi:latest']

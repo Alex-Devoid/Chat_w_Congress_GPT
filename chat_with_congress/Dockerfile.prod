@@ -1,0 +1,25 @@
+# Use the official Python image from the Docker Hub
+FROM python:3.10-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy only the requirements file to leverage Docker cache
+COPY chat_with_congress/requirements.txt /app/requirements.txt
+
+# Install system dependencies and Python packages
+RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnupg curl \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apt-get clean
+
+# Set the PYTHONPATH environment variable
+ENV PYTHONPATH=/app    
+
+# Copy the rest of the application code to the working directory
+COPY . .
+
+# Expose the port that the app runs on
+EXPOSE 8000
+
+# Command to run the FastAPI server
+CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
