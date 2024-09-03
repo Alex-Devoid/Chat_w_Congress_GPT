@@ -1,12 +1,13 @@
 # Use the official Python image from the Docker Hub
 FROM python:3.10-slim
 
-# Set the working directory in the container
+# Set the working directory in the container to /app/chat_with_congress
 WORKDIR /app/chat_with_congress
 
 # Copy only the requirements file to leverage Docker cache
-COPY chat_with_congress/requirements.txt /app/requirements.txt
-COPY .env /app/.env
+COPY chat_with_congress/requirements.txt ./
+COPY .env ./
+
 # Install system dependencies and Python packages
 RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnupg curl git vim net-tools build-essential \
     && echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
@@ -15,11 +16,10 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnu
     && pip install --no-cache-dir -r requirements.txt \
     && apt-get clean
 
-ENV PYTHONPATH=/app    
+# Set the PYTHONPATH to the current directory
+ENV PYTHONPATH=/app/chat_with_congress
+
 # Copy the rest of the application code to the working directory
-# Copy the .env file to the container
-
-
 COPY . .
 
 # Expose the port that the app runs on
