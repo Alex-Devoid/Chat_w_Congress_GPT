@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnu
     && pip install --no-cache-dir -r requirements.txt \
     && apt-get clean
 
-ENV PYTHONPATH=/app    
+ENV PYTHONPATH=/app/chat_with_congress
+
 # Copy the rest of the application code to the working directory
 # Copy the .env file to the container
 
@@ -27,3 +28,5 @@ EXPOSE 8000
 
 # Command to run the FastAPI server
 CMD ["uvicorn", "chat_with_congress.app.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+
