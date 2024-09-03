@@ -9,3 +9,4 @@ pytest
 tiktoken
 starlette
 python-dotenv
+secrets
