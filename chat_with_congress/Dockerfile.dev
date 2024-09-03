@@ -2,7 +2,7 @@
 FROM python:3.10-slim
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /app/chat_with_congress
 
 # Copy only the requirements file to leverage Docker cache
 COPY chat_with_congress/requirements.txt /app/requirements.txt
@@ -20,7 +20,7 @@ ENV PYTHONPATH=/app
 # Copy the .env file to the container
 
 
-COPY ./chat_with_congress .
+COPY . .
 
 # Expose the port that the app runs on
 EXPOSE 8000
