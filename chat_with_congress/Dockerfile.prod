@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates gnu
 ENV PYTHONPATH=/app    
 
 # Copy the rest of the application code to the working directory
-COPY . .
+COPY chat_with_congress/ ./
 
 # Expose the port that the app runs on
 EXPOSE 8000
