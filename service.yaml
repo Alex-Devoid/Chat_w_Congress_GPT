@@ -1,0 +1,19 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: custom-fastapi-service
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "5"  # Max 5 instances
+    spec:
+      containers:
+        - image: us-central1-docker.pkg.dev/chat-with-congress/chat-w-congress-repo/custom-fastapi:latest
+          resources:
+            limits:
+              cpu: "1" #1 vCPU
+              memory: "512Mi" # 512 MB of memory
+          ports:
+            - containerPort: 8000
+      containerConcurrency: 10  # Max 10 requests per container
